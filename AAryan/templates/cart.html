@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow-md fixed top-0 right-0 w-full z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" class="flex-shrink-0 flex items-center">
+                        <img class="h-8 w-auto" src="https://placehold.co/100x40" alt="Logo">
+                    </a>
+                </div>
+                <div class="flex items-center space-x-8">
+                    {% if session.get('seller') %}
+                        <a href="{{ url_for('seller_dashboard') }}" class="text-gray-500 hover:text-gray-700 ml-4 text-sm font-medium">Seller Dashboard</a>
+                    {% else %}
+                        <a href="{{ url_for('start_selling') }}" class="text-gray-500 hover:text-gray-700 ml-4 text-sm font-medium">Start Selling</a>
+                    {% endif %}
+                    <a href="{{ url_for('index') }}" class="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium">Home</a>
+                    <div class="flex items-center space-x-4">
+                        {% if session.get('username') %}
+                            <span class="text-gray-500">Welcome, {{ session['username'] }}</span>
+                            <a href="{{ url_for('logout') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Logout</a>
+                        {% else %}
+                            <a href="{{ url_for('login') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Login</a>
+                            <a href="{{ url_for('register') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Register</a>
+                        {% endif %}
+                        <a href="{{ url_for('cart') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium"><i class="fas fa-shopping-cart"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+        <h1 class="text-2xl font-bold mb-4">Your Cart</h1>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            {% if cart_items %}
+                <h2 class="text-xl font-semibold mb-4">Products Ordered</h2>
+                <form action="{{ url_for('checkout') }}" method="POST">
+                    <ul>
+                        {% for item in cart_items %}
+                            <li class="flex mb-4 border-b pb-4">
+                                <input type="checkbox" name="selected_products" value="{{ item.id }}" class="mr-4">
+                                <img src="{{ item.image_url }}" alt="Image of {{ item.name }}" class="h-20 w-20 object-cover mr-4" onerror="this.onerror=null; this.src='https://placehold.co/100x100';">
+                                <div class="flex-grow">
+                                    <h3 class="font-medium">{{ item.name }}</h3>
+                                    <p><strong>Variation:</strong> {{ item.variation }}</p>
+                                    <p><strong>Unit Price:</strong> P{{ item.unit_price }}</p>
+                                    <p><strong>Quantity:</strong> <input type ="number" name="quantities" value="1" min="1" class="w-16 ml-2"></p>
+                                    <p><strong>Item Subtotal:</strong> P{{ item.subtotal }}</p>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <button type="submit" class="mt-4 bg-indigo-600 text-white px-4 py-2 rounded">Checkout</button>
+                </form>
+            {% else %}
+                <p>Your cart is empty.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer class="bg-white shadow-md mt-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <p class="text-center text-gray-500">© 2023 Your Company. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

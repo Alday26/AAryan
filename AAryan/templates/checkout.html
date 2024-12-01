@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow-md fixed top-0 right-0 w-full z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" class="flex-shrink-0 flex items-center">
+                        <img class="h-8 w-auto" src="https://placehold.co/100x40" alt="Logo">
+                    </a>
+                </div>
+                <div class="flex items-center space-x-8">
+                    {% if session.get('seller') %}
+                        <a href="{{ url_for('seller_dashboard') }}" class="text-gray-500 hover:text-gray-700 ml-4 text-sm font-medium">Seller Dashboard</a>
+                    {% else %}
+                        <a href="{{ url_for('start_selling') }}" class="text-gray-500 hover:text-gray-700 ml-4 text-sm font-medium">Start Selling</a>
+                    {% endif %}
+                    <a href="{{ url_for('index') }}" class="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium">Home</a>
+                    <div class="flex items-center space-x-4">
+                        {% if session['username'] %}
+                            <span class="text-gray-500">Welcome, {{ session['username'] }}</span>
+                            <a href="{{ url_for('logout') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Logout</a>
+                        {% else %}
+                            <a href="{{ url_for('login') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Login</a>
+                            <a href="{{ url_for('register') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Register</a>
+                        {% endif %}
+                        <a href="{{ url_for('cart') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium"><i class="fas fa-shopping-cart"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+    <h2 class="text-2xl font-bold mb-4">Checkout</h2>
+    <form action="{{ url_for('checkout') }}" method="POST">
+        <input type="hidden" name="product_id" value="{{ product_id }}">
+        <div class="mb-4">
+            <label for="full_name" class="block text-sm font-medium text-gray-700">Full Name</label>
+            <input type="text" id="full_name" name="full_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+        </div>
+        <div class="mb-4">
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" id="email" name="email" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+        </div>
+        <div class="mb-4">
+            <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
+            <input type="number" id="quantity" name="quantity" value="{{ quantity }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" readonly>
+        </div>
+        <div class="mb-4">
+            <label for="total_price" class="block text-sm font-medium text-gray-700">Total Price</label>
+            <input type="text" id="total_price" name="total_price" value="{{ total_price }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" readonly>
+        </div>
+        <div class="flex justify-end">
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Complete Purchase</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}
+
+    <footer class="bg-white shadow-md mt-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <p class="text-center text-gray-500">© 2023 Your Company. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

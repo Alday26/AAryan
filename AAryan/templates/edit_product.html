@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product</title>
+    <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto my-10 p-5 bg-white rounded shadow-lg">
+        <h2 class="text-2xl font-semibold mb-3">Edit Product</h2>
+        <form action="{{ url_for('edit_product', product_id=product.id) }}" method="POST" enctype="multipart/form-data">
+            <div class="flex flex-col mb-5">
+                <label for="product-name" class="mb-2 font-medium">Product Name</label>
+                <input type="text" name="product_name" id="product-name" class="p-2 border rounded" value="{{ product.name }}" required>
+            </div>
+            <div class="flex flex-col mb-5">
+                <label for="product-description" class="mb-2 font-medium">Product Description</label>
+                <textarea name="product_description" id="product-description" class="p-2 border rounded" required>{{ product.description }}</textarea>
+            </div>
+            <div class="flex flex-col mb-5">
+                <label for="product-price" class="mb-2 font-medium">Product Price</label>
+                <input type="number" name="product_price" id="product-price" class="p-2 border rounded" value="{{ product.price }}" step="0.01" required>
+            </div>
+            <div class="flex flex-col mb-5">
+                <label for="product-stock" class="mb-2 font-medium">Stock Quantity</label>
+                <input type="number" name="product_stock" id="product-stock" class="p-2 border rounded" value="{{ product.stock }}" required min="0">
+            </div>
+            <div class="flex flex-col mb-5">
+                <label for="product-category" class="mb-2 font-medium">Product Category</label>
+                <select name="product_category" id="product-category" class="p-2 border rounded" required>
+                    <option value="gaming" {% if product.category == 'gaming' %}selected{% endif %}>Gaming Laptops</option>
+                    <option value="business" {% if product.category == 'business' %}selected{% endif %}>Business Laptops</option>
+                    <option value="ultrabook" {% if product.category == 'ultrabook' %}selected{% endif %}>Ultrabooks</option>
+                    <option value="2-in-1" {% if product.category == '2-in-1' %}selected{% endif %}>2-in-1 Laptops</option>
+                    <option value="chromebook" {% if product.category == 'chromebook' %}selected{% endif %}>Chromebooks</option>
+                    <option value="macbook" {% if product.category == 'macbook' %}selected{% endif %}>MacBooks</option>
+                    <option value="budget" {% if product.category == 'budget' %}selected{% endif %}>Budget Laptops</option>
+                    <option value="high-end" {% if product.category == 'high-end' %}selected{% endif %}>High-End Laptops</option>
+                </select>
+            </div>
+            <div class="flex flex-col mb-5">
+                <label for="product-color" class="mb-2 font-medium">Product Color</label>
+                <input type="text" name="product_color" id="product-color" class="p-2 border rounded" value="{{ product.color }}" required>
+            </div>
+            <div class="flex flex-col mb-5">
+                <label for="product-discount" class="mb-2 font-medium">Discount Value</label>
+                <input type="number" name="product_discount" id="product-discount" class="p-2 border rounded" value="{{ product.discount_value }}" step="0.01">
+            </div>
+            <div class="flex flex-col mb-5">
+                <label for="discount-type" class="mb-2 font-medium">Discount Type</label>
+                <select name="discount_type" id="discount-type" class="p-2 border rounded">
+                    <option value="percentage" {% if product.discount_type == 'percentage' %}selected{% endif %}>Percentage</option>
+                    <option value="fixed" {% if product.discount_type == 'fixed' %}selected{% endif %}>Fixed Amount</option>
+                </select>
+            </div>
+            <div class="flex flex-col mb-5">
+                <label for="product-coupon" class="mb-2 font-medium">Coupon Code</label>
+                <input type="text" name="product_coupon" id="product-coupon" class="p-2 border rounded" value="{{ product.coupon_code }}">
+            </div>
+            <div class="flex flex-col mb-5">
+                <label for="product-image" class="mb-2 font-medium">Product Image</label>
+                <input type="file" name="product_image" id="product-image" class="p-2 border rounded">
+            </div>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Update Product</button>
+        </form>
+    </div>
+</body>
+</html>

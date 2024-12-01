@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Site</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='static/product_detail.css') }}"> <!-- Link to your custom CSS -->
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .product-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+        }
+        .product-card {
+            min-width: 200px; /* Adjust based on your design */
+            margin-right: 1rem; /* Space between cards */
+        }
+        .prev, .next {
+            cursor: pointer;
+            background-color: white;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    {% block header %}
+    <nav class="bg-white shadow-md fixed top-0 right-0 w-full z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" class="flex-shrink-0 flex items-center">
+                        <img class="h-8 w-auto" src="https://placehold.co/100x40" alt="Logo">
+                    </a>
+                </div>
+                <div class="flex items-center space-x-8">
+                    {% if session.get('role') == 'seller' %}
+                        <a href="{{ url_for('seller_dashboard') }}" class="text-gray-500 hover:text-gray-700 ml-4 text-sm font-medium">Seller Dashboard</a>
+                    {% else %}
+                        <a href="{{ url_for('start_selling') }}" class="text-gray-500 hover:text-gray-700 ml-4 text-sm font-medium">Start Selling</a>
+                    {% endif %}
+                    <div class="hidden sm:flex sm:space-x-8">
+                        <a href="{{ url_for('index') }}" class="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium">Home</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">Products</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">About</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">Contact</a>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative" id="notification-container">
+                            <button id="notification-button" class="text-gray-500 hover:text-gray-700 focus:outline-none" aria-label="Notifications" onclick="toggleNotifications()">
+                                <i class="fas fa-bell"></i>
+                                {% if notifications|length > 0 %}
+                                    <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">{{ notifications|length }}</span>
+                                {% endif %}
+                            </button>
+                            <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                                <ul class="py-2">
+                                    {% if notifications|length > 0 %}
+                                        {% for notification in notifications %}
+                                            <li class="px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                                {{ notification.message }} <span class="text-gray-500 text-sm">{{ notification.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                                            </li>
+                                        {% endfor %}
+                                    {% else %}
+                                        <li class="px-4 py-2 text-gray-500">No notifications</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                    
+                        <div class="relative">
+                            <input type="text" id="search" class="p-2 border rounded w-full pl-10 pr-4" placeholder="Search for products...">
+                            <span class="absolute left-3 top-2 text-gray-500">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <button class="absolute right-3 top-2 text-gray-500 hover:text-gray-700 focus:outline-none" onclick="clearSearch()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    
+                        {% if session['username'] %}
+                        <div class="relative" id="user-dropdown-container" onmouseover="showUserDropdown()" onmouseout="hideUserDropdown()">
+                            <span class="text-gray-500 cursor-pointer">
+                                Welcome, {{ session['username'] }}
+                            </span>
+                            <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                                <ul class="py-2">
+                                    <li>
+                                        <a href="{{ url_for('settings') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                                    </li>
+                                    <li>
+                                        <form action="{{ url_for('logout') }}" method="POST" style="display: inline;">
+                                            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        {% else %}
+                            <a href="{{ url_for('login') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Login</a>
+                            <a href="{{ url_for('register') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Register</a>
+                        {% endif %}
+                    
+                        <div class="relative">
+                            <a href="{{ url_for('cart') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">
+                                <i class="fas fa-shopping-cart"></i>
+                                {% if session.get('cart') %}
+                                    <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">{{ session['cart']|length }}</span>
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endblock header %}
+
+            {% block notification %}
+        {% if not is_product_detail %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+            {% with messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                    <div class="space-y-4">
+                        {% for category, message in messages %}
+                            <div class="bg-{{ category }}-100 border-l-4 border-{{ category }}-500 text-{{ category }}-700 p-4" role="alert">
+                                <p class="font-bold">{{ category.capitalize() }}</p>
+                                <p>{{ message }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <ul>
+                {% for notification in notifications %}
+                    <li class="border-b py-2">{{ notification.message }} <span class="text-gray-500 text-sm">{{ notification.created_at }}</span></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% endblock notification %}
+
+    {% block content %}
+    <section class="bg-indigo-600 text-white py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold">Welcome to Our Store</h1>
+                <p class="mt-4 text-lg">Discover the best products at unbeatable prices</p>
+                <a href="#" class="mt-6 inline-block bg-white text-indigo-600 px-6 py-3 rounded-lg shadow-md hover:bg-gray-100">Shop Now</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+        <h2 class="text-2xl font-semibold mb-4 text-center">Flash Sales</h2>
+        <div class="bg-yellow-100 p-4 rounded-lg mb-4">
+            <div class="flex items-center justify-between mb-4">
+                <div id="countdown" class="text-lg font-bold"></div>
+                <button class="prev" onclick="scrollLeft()">Prev</button>
+                <button class="next" onclick="scrollRight()">Next</button>
+            </div>
+            <div class="product-slider" id="productSlider">
+                {% for flash_sale_product in flash_sale_products %}
+                <div class="product-card bg-white shadow-md rounded-lg overflow-hidden">
+                    <img class="w-full h-48 object-cover object-center" src="{{ url_for('static', filename='images/' + flash_sale_product.image) }}" alt="{{ flash_sale_product.name }}">
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold">{{ flash_sale_product.name }}</h3>
+                        <p class="text-gray-600">{{ flash_sale_product.description }}</p>
+                        <span class="text-lg font-bold">{{ flash_sale_product.price }}</span>
+                        {% if flash_sale_product.discount_value %}
+                            <div class="text-red-500">
+                                <span class="line-through">{{ flash_sale_product.price }}</span>
+                                <span class="ml-2">Discount: 
+                                    {% if flash_sale_product.discount_type == 'percentage' %}
+                                        {{ flash_sale_product.discount_value }}% off
+                                    {% else %}
+                                        {{ flash_sale_product.discount_value }} off
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <span class="text-lg font-bold">
+                                Discounted Price: {{ flash_sale_product.price - (flash_sale_product.price * (flash_sale_product.discount_value / 100)) if flash_sale_product.discount_type == 'percentage' else flash_sale_product.price - flash_sale_product.discount_value }}
+                            </span>
+                        {% endif %}
+                        <div class="flex justify-between items-center mt-4">
+                            <button class="bg-indigo-600 text-white px-4 py-2 rounded" onclick="addToCart({ flash_sale_product_id })">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+
+    <div class="flex flex-col mb-5 mt-8">
+        <div class="flex items-center mb-2">
+            <div class="flex flex-wrap">
+                <button class="bg-white shadow-md rounded-lg px-3 py-1 m-1 hover:bg-gray-100 transition-colors duration-200" onclick="filterProducts('all')">
+                    <span class="text-gray-800">All</span>
+                </button>
+                <button class="bg-white shadow-md rounded-lg px-3 py-1 m-1 hover:bg-gray-100 transition-colors duration-200" onclick="filterProducts('gaming')">
+                    <span class="text-gray-800">Gaming Laptops</span>
+                </button>
+                <button class="bg-white shadow-md rounded-lg px-3 py-1 m-1 hover:bg-gray-100 transition-colors duration-200" onclick="filterProducts('business')">
+                    <span class="text-gray-800">Business Laptops</span>
+                </button>
+                <button class="bg-white shadow-md rounded-lg px-3 py-1 m-1 hover:bg-gray-100 transition-colors duration-200" onclick="filterProducts('ultrabook')">
+                    <span class="text-gray-800">Ultrabooks</span>
+                </button>
+                <button class="bg-white shadow-md rounded-lg px-3 py-1 m-1 hover:bg-gray-100 transition-colors duration-200" onclick="filterProducts('2-in-1')">
+                    <span class="text-gray-800">2-in-1 Laptops</span>
+                </button>
+                <button class="bg-white shadow-md rounded-lg px-3 py-1 m-1 hover:bg-gray-100 transition-colors duration-200" onclick="filterProducts('chromebook')">
+                    <span class="text-gray-800">Chromebooks</span>
+                </button>
+                <button class="bg-white shadow-md rounded-lg px-3 py-1 m-1 hover:bg-gray-100 transition-colors duration-200" onclick="filterProducts('macbook')">
+                    <span class="text-gray-800">MacBooks</span>
+                </button>
+                <button class="bg-white shadow-md rounded-lg px-3 py-1 m-1 hover:bg-gray-100 transition-colors duration-200" onclick="filterProducts('budget')">
+                    <span class="text-gray-800">Budget Laptops</span>
+                </button>
+                <button class="bg-white shadow-md rounded-lg px-3 py-1 m-1 hover:bg-gray-100 transition-colors duration-200" onclick="filterProducts('high-end')">
+                    <span class="text-gray-800">High-End Laptops</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endblock content %}
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {% for product in seller_products %}
+        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="bg-white shadow-md rounded-lg overflow-hidden">
+            <img class="w-full h-48 object-cover" src="{{ url_for('static', filename='images/' + product['image']) }}" alt="{{ product['name'] }}">
+            <div class="p-4">
+                <h3 class="text-lg font-semibold">{{ product.name }}</h3>
+                <span class="text-lg font-bold">{{ product.price }}</span>
+                {% if product.discount_value %}
+                    <div class="text-red-500">
+                        <span class="line-through">{{ product.price }}</span>
+                        <span class="ml-2">Discount: 
+                            {% if product.discount_type == 'percentage' %}
+                                {{ product.discount_value }}% off
+                            {% else %}
+                                {{ product.discount_value }} off
+                            {% endif %}
+                        </span>
+                    </div>
+                    <span class="text-lg font-bold">
+                        Discounted Price: {{ product.price - (product.price * (product.discount_value / 100)) if product.discount_type == 'percentage' else product.price - product.discount_value }}
+                    </span>
+                    {% if product.coupon_code %}
+                        <p class="text-gray-600">Coupon Code: {{ product.coupon_code }}</p>
+                    {% endif %}
+                {% endif %}
+                <div class="flex justify-between items-center mt-4">
+                    <button class="bg-indigo-600 text-white px-4 py-2 rounded" onclick="addToCart({ product_id })">Add to Cart</button>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% block footer %}
+    <footer class="bg-white shadow-md mt-10">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <p class="text-gray-500">&copy; 2023 E-commerce Site</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    {% endblock footer %}
+    <script>
+        function addToCart(productId) {
+            fetch('/add_to_cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ product_id: productId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Product added to cart successfully!');
+                    updateCartCount();
+                } else {
+                    alert('Failed to add product to cart.');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+
+        function updateCartCount() {
+        const cartCountElement = document.querySelector('.cart-count');
+        const cartItems = sessionStorage.getItem('cart') ? JSON.parse(sessionStorage.getItem('cart')) : [];
+        cartCountElement.textContent = cartItems.length; // Update the cart count display
+        }
+
+        function clearSearch() {
+        document.getElementById("search").value = "";
+        }
+        
+        const notificationContainer = document.getElementById('notification-container');
+        const notificationDropdown = document.getElementById('notification-dropdown');
+
+        let hideTimeout;
+
+        notificationContainer.addEventListener('mouseleave', function() {
+            hideTimeout = setTimeout(() => {
+                notificationDropdown.classList.add('hidden');
+            }, 200); 
+        });
+
+        notificationContainer.addEventListener('mouseenter', function() {
+            clearTimeout(hideTimeout);
+            notificationDropdown.classList.remove('hidden');
+        });
+
+        function toggleNotifications() {
+        const dropdown = document.getElementById('notification-dropdown');
+        dropdown.classList.toggle('hidden');
+        }
+
+        window.onclick = function(event) {
+        const button = document.getElementById('notification-button');
+        const dropdown = document.getElementById('notification-dropdown');
+        if (!button.contains(event.target) && !dropdown.contains(event.target)) {
+            dropdown.classList.add('hidden');
+        }
+    }
+
+        function scrollLeft() {
+        const slider = document.getElementById('productSlider');
+        slider.scrollBy({
+            top: 0,
+            left: -200,
+            behavior: 'smooth'
+        });
+    }
+
+    function scrollRight() {
+        const slider = document.getElementById('productSlider');
+        slider.scrollBy({
+            top: 0,
+            left: 200,
+            behavior: 'smooth'
+        });
+    }
+
+        const endTime = new Date("{{ end_time }}").getTime();
+        console.log("End Time:", endTime);
+
+        const countdownElement = document.getElementById("countdown");
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = endTime - now;
+
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            countdownElement.innerHTML = `${hours}h ${minutes}m ${seconds}s`;
+
+            if (distance < 0) {
+                clearInterval(countdownInterval);
+                countdownElement.innerHTML = "EXPIRED";
+            }
+        }
+
+        const countdownInterval = setInterval(updateCountdown, 1000);
+        
+        const userDropdownContainer = document.getElementById('user-dropdown-container');
+        const userDropdown = document.getElementById('user-dropdown');
+
+        let userHideTimeout;
+
+        // Show the dropdown when the mouse enters the container
+        userDropdownContainer.addEventListener('mouseenter', function() {
+            clearTimeout(userHideTimeout);
+            userDropdown.classList.remove('hidden');
+        });
+
+        // Hide the dropdown when the mouse leaves the container
+        userDropdownContainer.addEventListener('mouseleave', function() {
+            userHideTimeout = setTimeout(() => {
+                userDropdown.classList.add('hidden');
+            }, 200); 
+        });
+
+        // Optional: Close the dropdown if clicked outside
+        window.onclick = function(event) {
+            if (!userDropdownContainer.contains(event.target)) {
+                userDropdown.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

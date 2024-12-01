@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Selling</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='start-selling.css') }}"> <!-- Link to external CSS -->
+</head>
+<body>
+    <nav class="bg-white shadow-md fixed top-0 right-0 w-full z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" class="flex-shrink-0 flex items-center">
+                        <img class="h-8 w-auto" src="https://placehold.co/100x40" alt="Logo">
+                    </a>
+                </div>
+                <div class="flex items-center space-x-8">
+                    {% if session.get('role') == 'seller' %}
+                        <a href="{{ url_for('seller_dashboard') }}" class="text-gray-500 hover:text-gray-700 ml-4 text-sm font-medium">Seller Dashboard</a>
+                    {% else %}
+                        <a href="{{ url_for('start_selling') }}" class="text-gray-500 hover:text-gray-700 ml-4 text-sm font-medium">Start Selling</a>
+                    {% endif %}
+                    <div class="hidden sm:flex sm:space-x-8">
+                        <a href="{{ url_for('index') }}" class="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium">Home</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">Products</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">About</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">Contact</a>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative" id="notification-container">
+                            <button id="notification-button" class="text-gray-500 hover:text-gray-700 focus:outline-none" aria-label="Notifications">
+                                <i class="fas fa-bell"></i>
+                                {% if notifications|length > 0 %}
+                                    <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">{{ notifications|length }}</span>
+                                {% endif %}
+                            </button>
+                            <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                                <ul class="py-2">
+                                    {% for notification in notifications %}
+                                        <li class="px-4 py-2 text-gray-700 hover:bg-gray-100">{{ notification.message }} <span class="text-gray-500 text-sm">{{ notification.created_at }}</span></li>
+                                    {% endfor %}
+                                    {% if notifications|length == 0 %}
+                                        <li class="px-4 py-2 text-gray-500">No notifications</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    
+                        <div class="relative">
+                            <input type="text" id="search" class="p-2 border rounded w-full pl-10 pr-4" placeholder="Search for products...">
+                            <span class="absolute left-3 top-2 text-gray-500">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <button class="absolute right-3 top-2 text-gray-500 hover:text-gray-700 focus:outline-none" onclick="clearSearch()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    
+                        {% if session['username'] %}
+                            <span class="text-gray-500">Welcome, {{ session['username'] }}</span>
+                            <a href="{{ url_for('logout') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Logout</a>
+                        {% else %}
+                            <a href="{{ url_for('login') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Login</a>
+                            <a href="{{ url_for('register') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Register</a>
+                        {% endif %}
+                    
+                        <div class="relative">
+                            <a href="{{ url_for('cart') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">
+                                <i class="fas fa-shopping-cart"></i>
+                                {% if session.get('cart') %}
+                                    <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">{{ session['cart']|length }}</span>
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Message Section -->
+    <div class="flex items-center justify-center h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="wrapper">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="mb-4 text-center">
+                            {% for category, message in messages %}
+                                <div class="p-4 mb-4 text-sm text-white bg-green-600 rounded-md border-2 border-green-700">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+
+ <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+        <div class="wrapper">
+            <h1 class="text-2xl font-bold mb-4 text-center">Start Selling</h1>
+            <form method="POST" action="{{ url_for('start_selling') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4">
+                        <label for="full_name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                        {{ form.full_name(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500") }}
+                        {% for error in form.full_name.errors %}
+                            <span class="text-red-600 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                        {{ form.email(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500") }}
+                        {% for error in form.email.errors %}
+                            <span class="text-red-600 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="shop_name" class="block text-sm font-medium text-gray-700">Shop Name</label>
+                        {{ form.shop_name(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500") }}
+                        {% for error in form.shop_name.errors %}
+                            <span class="text-red-600 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="shop_description" class="block text-sm font-medium text-gray-700">Shop Description</label>
+                        {{ form.shop_description(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500", rows=4) }}
+                        {% for error in form.shop_description.errors %}
+                            <span class="text-red-600 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                        {{ form.phone_number(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500") }}
+                        {% for error in form.phone_number.errors %}
+                            <span class="text-red-600 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="region" class="block text-sm font-medium text-gray-700">Region</label>
+                        {{ form.region(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500") }}
+                        {% for error in form.region.errors %}
+                            <span class="text-red-600 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="province" class="block text-sm font-medium text-gray-700">Province</label>
+                        {{ form.province(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500") }}
+                        {% for error in form.province.errors %}
+                            <span class="text-red-600 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="city" class="block text-sm font-medium text-gray-700">City</label>
+                        {{ form.city(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500") }}
+                        {% for error in form.city.errors %}
+                            <span class="text-red-600 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="barangay" class="block text-sm font-medium text-gray-700">Barangay</label>
+                        {{ form.barangay(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500") }}
+                        {% for error in form.barangay.errors %}
+                            <span class="text-red-600 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="postal_code" class="block text-sm font-medium text-gray-700">Postal Code</label>
+                        {{ form.postal_code(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500") }}
+                        {% for error in form.postal_code.errors %}
+                            <span class="text-red-600 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <button type="submit" class="mt-4 bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 w-full">Submit</button>
+            </form>
+        </div>
+    </div>
+    <footer class="bg-white shadow-md mt-10">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <p class="text-gray-500">&copy; 2023 E-commerce Site</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,110 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align to the top of the page */
+    min-height: 100vh;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb); /* Soft gradient background */
+    font-family: 'Arial', sans-serif; /* Change font for a modern look */
+}
+
+.wrapper {
+    background: white;
+    padding: 20px; /* Reduced padding for a more compact look */
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Use full width */
+    max-width: 800px; /* Set a max-width for larger screens */
+    text-align: left;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.wrapper:hover {
+    transform: translateY(-2px); /* Slight lift effect on hover */
+}
+
+.wrapper h1 {
+    text-align: center;
+    font-weight: bolder;
+    margin-bottom: 15px; /* Reduced space below the heading */
+    color: #333;
+}
+
+.wrapper label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.wrapper input[type="text"],
+.wrapper textarea,
+.wrapper select {
+    width: 100%;
+    padding: 8px; /* Maintain reduced padding */
+    margin-bottom: 12px; /* Space between elements */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px; /* Slightly smaller font size */
+    transition: border 0.3s;
+}
+
+.wrapper input[type="text"]:focus,
+.wrapper textarea:focus,
+.wrapper select:focus {
+    border-color: #42a5f5; /* Lighter blue for focus */
+    outline: none;
+}
+
+.wrapper textarea {
+    min-height: 40px; /* Reduced minimum height for textarea */
+    max-height: 150px; /* Reduced maximum height for textarea */
+    resize: vertical; /* Allow vertical resizing */
+    overflow-y: auto; /* Scroll if content exceeds */
+}
+
+.wrapper .desc,
+.wrapper .catego {
+    display: flex; 
+    flex-direction: column; 
+    padding: 5px 0; /* Reduced padding for desc and catego */
+}
+
+.wrapper button {
+    width: 100%;
+    padding: 10px;
+    background-color: #42a5f5; /* Primary color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+    position: relative; /* For hover effect */
+}
+
+.wrapper button:hover {
+    background-color: #1e88e5; /* Darker shade on hover */
+}
+
+.wrapper button:after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background: white;
+    transform: translateX(-50%) scaleX(0);
+    transition: transform 0.3s;
+}
+
+.wrapper button:hover:after {
+    transform: translateX(-50%) scaleX(1); /* Underline effect on hover */
+}

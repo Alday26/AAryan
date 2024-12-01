@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+    </style>
+    <script>
+        function showSection(section) {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(s => {
+                s.style.display = 'none'; // Hide all sections
+            });
+            document.getElementById(section).style.display = 'block'; // Show the selected section
+        }
+
+        // Show the dashboard section by default
+        window.onload = function() {
+            showSection('dashboard');
+        }
+    </script>
+</head>
+
+<body class="bg-gray-100">
+
+    <nav class="bg-white shadow-md fixed top-0 right-0 w-full z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" class="flex-shrink-0 flex items-center">
+                        <img class="h-8 w-auto" src="https://placehold.co/100x40" alt="Logo">
+                    </a>
+                </div>
+                <div class="flex items-center space-x-8">
+                    {% if session.get('role') == 'seller' %}
+                        <a href="{{ url_for('seller_dashboard') }}" class="text-gray-500 hover:text-gray-700 ml-4 text-sm font-medium">Seller Dashboard</a>
+                    {% else %}
+                        <a href="{{ url_for('start_selling') }}" class="text-gray-500 hover:text-gray-700 ml-4 text-sm font-medium">Start Selling</a>
+                    {% endif %}
+                    <div class="hidden sm:flex sm:space-x-8">
+                        <a href="{{ url_for('index') }}" class="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium">Home</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">Products</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">About</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">Contact</a>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        {% if session['username'] %}
+                            <span class ="text-gray-500">Welcome, {{ session['username'] }}</span>
+                            <a href="{{ url_for('logout') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Logout</a>
+                        {% else %}
+                            <a href="{{ url_for('login') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Login</a>
+                            <a href="{{ url_for('register') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">Register</a>
+                        {% endif %}
+                        <a href="{{ url_for('cart') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium"><i class="fas fa-shopping-cart"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex mt-16">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-white shadow-md h-screen ">
+            <div class="p-4">
+                <h2 class="text-lg font-bold mb-4">Navigation</h2>
+                <ul class="space-y-2">
+                    <li><a href="javascript:void(0);" onclick="showSection('dashboard')" class="block text-gray-700 hover:bg-gray-200 p-2 rounded">Dashboard</a></li>
+                    <li><a href="javascript:void(0);" onclick="showSection('inventory')" class="block text-gray-700 hover:bg-gray-200 p-2 rounded">Inventory Management</a></li>
+                    <li><a href="javascript:void(0);" onclick="showSection('product')" class="block text-gray-700 hover:bg-gray-200 p-2 rounded">Product Management</a></li>
+                    <li><a href="javascript:void(0);" onclick="showSection('order')" class="block text-gray-700 hover:bg-gray-200 p-2 rounded">Order Management</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-5">
+            <div class="container mx-auto my-10 p-5 bg-white rounded shadow-lg">
+                <section id="dashboard" class="section mb-10">
+                    <h1 class="text-3xl font-bold mb-5">Seller Dashboard</h1>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div class="bg-white p-4 rounded shadow">
+                            <h3 class="text-lg font-semibold">Total Sales</h3>
+                            <p class="text-2xl font-bold">{{ total_sales }}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded shadow">
+                            <h3 class="text-lg font-semibold">Total Revenue</h3>
+                            <p class="text-2xl font-bold">{{ total_revenue }}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded shadow">
+                            <h3 class="text-lg font-semibold">Recent Orders</h3>
+                            <ul>
+                                {% for recent_order in recent_orders %}
+                                    <li class="text-gray-700">{{ recent_order.id }} - {{ recent_order.total_price }} ({{ recent_order.created_at }})</li>
+                                {% endfor %}
+                                {% if recent_orders|length == 0 %}
+                                    <li class="text-gray-500">No recent orders.</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="inventory" class="section mb-10" style="display: none;">
+                    <h2 class="text-2xl font-semibold mb-3">Inventory Management</h2>
+                    <table class="min-w-full bg-white border border-gray-300">
+                        <thead>
+                            <tr>
+                                <th class="border px-4 py-2">Product Name</th>
+                                <th class="border px-4 py-2">Stock</th>
+                                <th class="border px-4 py-2">Price</th>
+                                <th class="border px-4 py-2">Color</th>
+                                <th class="border px-4 py-2">Flash Sale</th>
+                                <th class="border px-4 py-2">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in seller_products %}
+                            <tr>
+                                <td class="border px-4 py-2">{{ product.name }}</td>
+                                <td class="border px-4 py-2">{{ product.stock }}</td>
+                                <td class="border px-4 py-2">{{ product.price }}</td>
+                                <td class="border px-4 py-2">{{ product.color }}</td>
+                                <td class="border px-4 py-2">
+                                    {% if product.flash_sale %}
+                                        <span class="text-green-500 font-semibold">Yes</span>
+                                    {% else %}
+                                        <span class="text-red-500 font-semibold">No</span>
+                                    {% endif %}
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <a href="{{ url_for('edit_product', product_id=product.id) }}" class="text-blue-500">Edit</a>
+                                    <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="text-red-500">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if seller_products | length == 0 %}
+                            <tr>
+                                <td colspan="6" class="border px-4 py-2 text-center">No products found.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    <div class="flex justify-between mt-4">
+                        {% if page > 1 %}
+                            <a href="{{ url_for('seller_dashboard', page=page-1) }}" class="text-blue-500">Previous</a>
+                        {% endif %}
+                        {% if page <total_pages %}
+                            <a href="{{ url_for('seller_dashboard', page=page+1) }}" class="text-blue-500">Next</a>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <section id="product" class="section mb-10" style="display: none;">
+                    <h2 class="text-2xl font-semibold mb-3">Product Management</h2>
+                    <form id="product-form" action="{{ url_for('add_product') }}" method="POST" enctype="multipart/form-data" onsubmit="return validateColor()">
+                        <div class="flex flex-col mb-5">
+                            <label for="product-name" class="mb-2 font-medium">Product Name</label>
+                            <input type="text" name="product_name" id="product-name" class="p-2 border rounded" placeholder="Enter product name" required>
+                        </div>
+                        <div class="flex flex-col mb-5">
+                            <label for="product-description" class="mb-2 font-medium">Product Description</label>
+                            <textarea name="product_description" id="product-description" class="p-2 border rounded" placeholder="Enter product description" required></textarea>
+                        </div>
+                        <div class="flex flex-col mb-5">
+                            <label for="product-price" class="mb-2 font-medium">Product Price</label>
+                            <input type="number" name="product_price" id="product-price" class="p-2 border rounded" placeholder="Enter product price" step="0.01" required>
+                        </div>
+                        <div class="flex flex-col mb-5">
+                            <label for="product-stock" class="mb-2 font-medium">Stock Quantity</label>
+                            <input type="number" name="product_stock" id="product-stock" class="p-2 border rounded" placeholder="Enter stock quantity" required min="0">
+                        </div>
+                        <div class="flex flex-col mb-5">
+                            <label for="product-image" class="mb-2 font-medium">Product Image</label>
+                            <input type="file" name="product_image" id="product-image" class="p-2 border rounded" required onchange="previewImage(event, 'image-preview')">
+                            <img id="image-preview" class="mt-2" style="display:none; max-width: 200px;" alt="Image Preview">
+                        </div>
+                
+                        <!-- Additional Images -->
+                        <h3 class="text-xl font-semibold mb-2">Additional Images (up to 5)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
+                            {% for i in range(5) %}
+                            <div class="flex flex-col">
+                                <label for="additional-image-{{ i }}" class="mb-2 font-medium">Additional Image {{ i + 1 }}</label>
+                                <input type="file" name="additional_images" id="additional-image-{{ i }}" class="p-2 border rounded" onchange="previewImage(event, 'additional-preview-{{ i }}')">
+                                <img id="additional-preview-{{ i }}" class="mt-2" style="display:none; max-width: 100px;" alt="Additional Image Preview">
+                            </div>
+                            {% endfor %}
+                        </div>
+                
+                        <script>
+                            function previewImage(event, previewId) {
+                                const imagePreview = document.getElementById(previewId);
+                                const file = event.target.files[0];
+                                const reader = new FileReader();
+                
+                                reader.onload = function(e) {
+                                    imagePreview.src = e.target.result;
+                                    imagePreview.style.display = 'block';
+                                }
+                
+                                if (file) {
+                                    reader.readAsDataURL(file);
+                                } else {
+                                    imagePreview.style.display = 'none';
+                                }
+                            }
+                        </script>
+                
+                        <div class="flex flex-col mb-5">
+                            <label for="product-category" class="mb-2 font-medium">Product Category</label>
+                            <select name="product_category" id="product-category" class="p-2 border rounded" required>
+                                <option value="">Select a category</option>
+                                <option value="gaming">Gaming Laptops</option>
+                                <option value="business">Business Laptops</option>
+                                <option value="ultrabook">Ultrabooks</option>
+                                <option value="2-in-1">2-in-1 Laptops</option>
+                                <option value="chromebook">Chromebooks</option>
+                                <option value="macbook">MacBooks</option>
+                                <option value="budget">Budget Laptops</option>
+                                <option value ="high-end">High-End Laptops</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col mb-5">
+                            <label for="product-color" class="mb-2 font-medium">Product Color</label>
+                            <input type="text" name="product_color" id="product-color" class="p-2 border rounded" placeholder="Enter a color (e.g., #FF5733 or red)" required>
+                        </div>
+                        <div class="flex flex-col mb-5">
+                            <label for="product-discount" class="mb-2 font-medium">Discount Value</label>
+                            <input type="number" name="product_discount" id="product-discount" class="p-2 border rounded" placeholder="Enter discount value" step="0.01">
+                        </div>
+                        <div class="flex flex-col mb-5">
+                            <label for="discount-type" class="mb-2 font-medium">Discount Type</label>
+                            <select name="discount_type" id="discount-type" class="p-2 border rounded">
+                                <option value="percentage">Percentage</option>
+                                <option value="fixed">Fixed Amount</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center mb-5">
+                            <input type="checkbox" name="flash_sale" id="flash-sale" class="mr-2">
+                            <label for="flash-sale" class="font-medium">Add to Flash Sales</label>
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Add Product</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section id="order" class="section mb-10">
+                    <h2 class="text-2xl font-semibold mb-3">Order Management</h2>
+                    <table class="min-w-full bg-white border border-gray-300">
+                        <thead>
+                            <tr>
+                                <th class="border px-4 py-2">Order ID</th>
+                                <th class="border px-4 py-2">Product Name</th>
+                                <th class="border px-4 py-2">Quantity</th>
+                                <th class="border px-4 py-2">Total Price</th>
+                                <th class="border px-4 py-2">Order Status</th>
+                                <th class="border px-4 py-2">Date</th>
+                                <th class="border px-4 py-2">Full Name</th>
+                                <th class="border px-4 py-2">Email</th> 
+                                <th class="border px-4 py-2">Actions</th> 
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td class="border px-4 py-2">{{ order.id }}</td>
+                                <td class="border px-4 py-2">{{ order.product_name }}</td> 
+                                <td class="border px-4 py-2">{{ order.quantity }}</td>
+                                <td class="border px-4 py-2">{{ order.total_price }}</td>
+                                <td class="border px-4 py-2">{{ order.order_status }}</td>
+                                <td class="border px-4 py-2">{{ order.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td class="border px-4 py-2">{{ order.full_name }}</td>
+                                <td class="border px-4 py-2">{{ order.email }}</td> 
+                                <td class="border px-4 py-2">
+                                    <form action="{{ url_for('edit_order', order_id=order.id) }}" method="POST">
+                                        <select name="order_status" class="border rounded-md"> 
+                                            <option value="pending" {% if order.order_status == 'pending' %}selected{% endif %}>Pending</option>
+                                            <option value="shipped" {% if order.order_status == 'shipped' %}selected{% endif %}>Shipped</option>
+                                            <option value="delivered" {% if order.order_status == 'delivered' %}selected{% endif %}>Delivered</option>
+                                            <option value="canceled" {% if order.order_status == 'canceled' %}selected{% endif %}>Canceled</option>
+                                        </select>
+                                        <button type="submit" class="ml-2 bg-blue-500 text-white px-2 py-1 rounded">Edit</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if orders | length == 0 %}
+                            <tr>
+                                <td colspan="9" class="border px-4 py-2 text-center">No orders found.</td> <!-- Adjusted colspan to 9 -->
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </section>
+
+                <footer class="bg-white shadow-md mt-10">
+                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                        <div class="flex justify-between items-center">
+                            <p class="text-gray-500">&copy; 2023 E-commerce Site</p>
+                            <div class="flex space-x-4">
+                                <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-facebook"></i></a>
+                                <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-instagram"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function validateColor() {
+            const colorInput = document.getElementById('product-color').value;
+            const isValidColor = /^#([0-9A-F]{3}){1,2}$/i.test(colorInput) || /^[a-zA-Z]+$/.test(colorInput);
+
+            if (!isValidColor) {
+                alert('Please enter a valid color name or a valid hex color code (e.g., #FF5733 or red).');
+                return false;
+            }
+            return true;
+        }
+    </script>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-10">
+        {% for product in seller_products %}
+        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="bg-white shadow-md rounded-lg overflow-hidden">
+            <img class="w-full h-48 object-cover" src="{{ url_for('static', filename='images/' + product['image']) }}" alt="{{ product['name'] }}">
+            <div class="p-4">
+                <h3 class="text-lg font-semibold">{{ product.name }}</h3>
+                <p class="text-gray-600">{{ product.description }}</p>
+                <span class="text-lg font-bold">{{ product.price }}</span>
+                {% if product.discount_value %}
+                    <div class="text-red-500">
+                        <span class="line-through">{{ product.price }}</span>
+                        <span class="ml-2">Discount: 
+                            {% if product.discount_type == 'percentage' %}
+                                {{ product.discount_value }}% off
+                            {% else %}
+                                {{ product.discount_value }} off
+                            {% endif %}
+                        </span>
+                    </div>
+                    <span class="text-lg font-bold">
+                        Discounted Price: {{ product.price - (product.price * (product.discount_value / 100)) if product.discount_type == 'percentage' else product.price - product.discount_value }}
+                    </span>
+                    {% if product.coupon_code %}
+                        <p class="text-gray-600">Coupon Code: {{ product.coupon_code }}</p>
+                    {% endif %}
+                {% endif %}
+                <span class="text-gray-600">Stock: {{ product.stock }}</span>  
+                <span class="text-gray-600">Color: {{ product.color }}</span> 
+                <div class="flex justify-between items-center mt-4">
+                    <button class="bg-indigo-600 text-white px-4 py-2 rounded" onclick="addToCart({ product_id })">Add to Cart</button>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</body>
+</html>

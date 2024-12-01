@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <div class="wrapper">
+        <form action="{{ url_for('login') }}" method="post">
+            <h1>Login</h1>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul class="flash-messages">
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+            <div class="input-box">
+                <label for="username">Username</label>
+                <input type="text" name="username" required placeholder="Username" id="username" aria-required="true">
+            </div>      
+            <div class="input-box">
+                <label for="password">Password</label>
+                <input type="password" name="password" required placeholder="Password" id="password" aria-required="true">
+            </div>
+            <div class="remember-forgot">
+                <label>
+                    <input type="checkbox" name="remember" id="remember">Remember me
+                </label>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+            <button type="submit" class="btn">Login</button>
+            <div class="register-link">
+                <p>Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
